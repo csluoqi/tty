@@ -1,47 +1,51 @@
-package com.yinhai.tty.util;
+package com.yinhai.tty;
 
 import com.yinhai.tty.constant.DataBaseType;
 import com.yinhai.tty.entity.InfoBean;
+import com.yinhai.tty.util.DataBaseConnUtil;
+import com.yinhai.tty.util.ReadFileThread;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileUpLoadUtil {
-
-    public static void fileUpLoad(String filePath,String dataBaseType) throws Exception {
+/**
+ * Created by yanglei on 2018/12/20.
+ */
+public class test {
+    public static void fileUpLoad(String filePath) throws Exception {
+        System.out.println("-----------开始----------");
+        long start = System.currentTimeMillis();
         InputStream is = null;
         BufferedReader reader = null;
         List<InfoBean> infoBeans = new ArrayList<InfoBean>();
         try {
-            Instant start = Instant.now();
             File file = new File(filePath);
+            ReadFileThread readFileThread= null;
             if(file.isDirectory()){
                 File[] filelist = file.listFiles();
-                for(int i =0; i < filelist.length; i++){
-                    infoBeans = readFile(filelist[i]);
+                int count = 1;
+                BigDecimal bd1 = new BigDecimal(Double.toString(filelist.length));
+                BigDecimal bd2 = new BigDecimal(Double.toString(count));
+                BigDecimal big = bd1.divide(bd2,10,BigDecimal.ROUND_FLOOR);
+                double j = big.doubleValue();
+                for(int i = 0; i < count; i++) {
+                   int s = (int)Math.ceil(i*j);
+                   int e = (int)Math.ceil(j*(i+1))-1;
+                    readFileThread = new ReadFileThread(filelist,s,e);
+                    readFileThread.start();
                 }
             }
             if(!file.isDirectory()){
                 infoBeans = readFile(file);
             }
-            Instant end = Instant.now();
-            System.out.println("Difference in milliseconds : " + Duration.between(start, end).toMillis());
-
-            Connection conn = null;
-            if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("jdbc:oracle:thin:@192.168.20.180:1521/orcl","ta3","ta3",DataBaseType.Oracle.getDriverClassName());
-            }
-            if(DataBaseType.MySql.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("","","",DataBaseType.MySql.getDriverClassName());
-            }
-            if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("","","",DataBaseType.SQLServer.getDriverClassName());
-            }
-            String result = DataBaseConnUtil.execute(conn,infoBeans);
+        long end = System.currentTimeMillis();
+        System.out.println("用时"+(end-start)/1000+"s");
+        System.out.println("-----------结束----------");
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
@@ -80,11 +84,25 @@ public class FileUpLoadUtil {
 
     public static void main(String[] args) {
         try {
-            fileUpLoad("F:\\test","0");
+            fileUpLoad("F:\\test");
         }catch (Exception e){
-          e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
-}
 
+    public static void xinacheng() throws InterruptedException {
+        int count = 10;
+        for(int i = 0; i < count; i++) {
+            Thread worker = new Thread(new Runnable(){
+                @Override
+                public void run() {
+                    System.out.println("执行子线程");
+                }
+            });
+            worker.start();
+        }
+        System.out.println("执行主线程");
+
+    }
+}

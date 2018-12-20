@@ -3,35 +3,51 @@ package com.yinhai.tty.util;
 import com.yinhai.tty.constant.DataBaseType;
 import com.yinhai.tty.entity.InfoBean;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileUpLoadUtil {
+/**
+ * 开启线程
+ * Created by yanglei on 2018/12/20.
+ */
+public class ReadFileThread extends Thread{
+    File[] filelist;
+    int start;
+    int end;
 
-    public static void fileUpLoad(String filePath,String dataBaseType) throws Exception {
-        InputStream is = null;
-        BufferedReader reader = null;
+    public ReadFileThread(File[] filelist, int start, int end) {
+        this.filelist = filelist;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    public void run(){
         List<InfoBean> infoBeans = new ArrayList<InfoBean>();
-        try {
-            Instant start = Instant.now();
-            File file = new File(filePath);
-            if(file.isDirectory()){
-                File[] filelist = file.listFiles();
-                for(int i =0; i < filelist.length; i++){
-                    infoBeans = readFile(filelist[i]);
-                }
+        System.out.println("-----开始-----"+start+","+end);
+        long time_s = System.currentTimeMillis();
+        for(int i = start;i <= end; i++){
+            try {
+                infoBeans = readFile(filelist[i]);
+            }catch (Exception e){
+                e.printStackTrace();
             }
-            if(!file.isDirectory()){
-                infoBeans = readFile(file);
-            }
-            Instant end = Instant.now();
-            System.out.println("Difference in milliseconds : " + Duration.between(start, end).toMillis());
+        }
+        insert("0",infoBeans);
+        long time_e = System.currentTimeMillis();
+        System.out.println("用时:"+(time_e-time_s)+"ms");
+        System.out.println("------完成------");
+    }
 
-            Connection conn = null;
+
+    public static void insert(String dataBaseType, List<InfoBean> infoBeans){
+        Connection conn = null;
+        try {
             if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
                 conn = DataBaseConnUtil.getConnection("jdbc:oracle:thin:@192.168.20.180:1521/orcl","ta3","ta3",DataBaseType.Oracle.getDriverClassName());
             }
@@ -42,16 +58,10 @@ public class FileUpLoadUtil {
                 conn = DataBaseConnUtil.getConnection("","","",DataBaseType.SQLServer.getDriverClassName());
             }
             String result = DataBaseConnUtil.execute(conn,infoBeans);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if(reader!=null){
-                reader.close();
-            }
+        }catch (Exception e){
+          e.printStackTrace();
         }
+
     }
 
     public static List<InfoBean> readFile(File file) throws Exception {
@@ -77,14 +87,4 @@ public class FileUpLoadUtil {
         }
         return infoBeans;
     }
-
-    public static void main(String[] args) {
-        try {
-            fileUpLoad("F:\\test","0");
-        }catch (Exception e){
-          e.printStackTrace();
-        }
-
-    }
 }
-
