@@ -1,7 +1,10 @@
 package com.yinhai.tty.util;
 
 import com.yinhai.tty.constant.DataBaseType;
+import com.yinhai.tty.constant.PropertiesConst;
 import com.yinhai.tty.entity.InfoBean;
+import com.yinhai.tty.thread.ReadFileThread;
+import com.yinhai.tty.thread.WriteDataBaseThread;
 
 import java.io.*;
 import java.sql.Connection;
@@ -9,10 +12,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FileUpLoadUtil {
 
-    public static void fileUpLoad(String filePath,String dataBaseType) throws Exception {
+    /*public static void fileUpLoad(String filePath,String dataBaseType) throws Exception {
         InputStream is = null;
         BufferedReader reader = null;
         List<InfoBean> infoBeans = new ArrayList<InfoBean>();
@@ -22,24 +26,30 @@ public class FileUpLoadUtil {
             if(file.isDirectory()){
                 File[] filelist = file.listFiles();
                 for(int i =0; i < filelist.length; i++){
-                    infoBeans = readFile(filelist[i]);
+                    infoBeans.addAll(readFile(filelist[i]));
                 }
             }
             if(!file.isDirectory()){
                 infoBeans = readFile(file);
             }
             Instant end = Instant.now();
-            System.out.println("Difference in milliseconds : " + Duration.between(start, end).toMillis());
+            System.out.println("READ in milliseconds : " + Duration.between(start, end).toMillis());
 
             Connection conn = null;
             if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("jdbc:oracle:thin:@192.168.20.180:1521/orcl","ta3","ta3",DataBaseType.Oracle.getDriverClassName());
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("oraclejdbcurl"),
+                        PropertiesUtil.getValue("oracleusername"),
+                        PropertiesUtil.getValue("oracleuserpassword"),DataBaseType.Oracle.getDriverClassName());
             }
             if(DataBaseType.MySql.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("","","",DataBaseType.MySql.getDriverClassName());
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("mysqljdbcurl"),
+                        PropertiesUtil.getValue("mysqlusername"),
+                        PropertiesUtil.getValue("mysqluserpassword"),DataBaseType.MySql.getDriverClassName());
             }
             if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection("","","",DataBaseType.SQLServer.getDriverClassName());
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("sqlserverjdbcurl"),
+                        PropertiesUtil.getValue("sqlserverusername"),
+                        PropertiesUtil.getValue("sqlserveruserpassword"),DataBaseType.SQLServer.getDriverClassName());
             }
             String result = DataBaseConnUtil.execute(conn,infoBeans);
         } catch (Exception e) {
@@ -76,11 +86,42 @@ public class FileUpLoadUtil {
             }
         }
         return infoBeans;
+    }*/
+
+    public static void fileUpLoad(String filePath,String dataBaseType){
+        File file = new File(filePath);
+        Connection conn = null;
+        try {
+            if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("oraclejdbcurl",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("oracleusername",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("oracleuserpassword",PropertiesConst.APPLICATION),DataBaseType.Oracle.getDriverClassName());
+            }
+            if(DataBaseType.MySql.getTypeId().equals(dataBaseType)){
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("mysqljdbcurl",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("mysqlusername",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("mysqluserpassword",PropertiesConst.APPLICATION),DataBaseType.MySql.getDriverClassName());
+            }
+            if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
+                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("sqlserverjdbcurl",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("sqlserverusername",PropertiesConst.APPLICATION),
+                        PropertiesUtil.getValue("sqlserveruserpassword",PropertiesConst.APPLICATION),DataBaseType.SQLServer.getDriverClassName());
+            }
+            ReadFileThread readFileThread = new ReadFileThread(file);
+            List<Map<Integer,String>> infos = readFileThread.call();
+            WriteDataBaseThread writeDataBaseThread = new WriteDataBaseThread(conn,infos);
+            String result = writeDataBaseThread.call();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
         try {
-            fileUpLoad("F:\\test","0");
+            Instant start = Instant.now();
+            fileUpLoad("E:/JAVA/Workspaces/Idea/test/1.txt","0");
+            Instant end = Instant.now();
+            System.out.println("milliseconds : " + Duration.between(start, end).toMillis());
         }catch (Exception e){
           e.printStackTrace();
         }

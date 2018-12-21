@@ -1,15 +1,10 @@
 package com.yinhai.tty;
 
-import com.yinhai.tty.constant.DataBaseType;
 import com.yinhai.tty.entity.InfoBean;
-import com.yinhai.tty.util.DataBaseConnUtil;
-import com.yinhai.tty.util.ReadFileThread;
+import com.yinhai.tty.util.ReadFileThreadYL;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +20,7 @@ public class test {
         List<InfoBean> infoBeans = new ArrayList<InfoBean>();
         try {
             File file = new File(filePath);
-            ReadFileThread readFileThread= null;
+            ReadFileThreadYL readFileThread= null;
             if(file.isDirectory()){
                 File[] filelist = file.listFiles();
                 int count = 1;
@@ -36,7 +31,7 @@ public class test {
                 for(int i = 0; i < count; i++) {
                    int s = (int)Math.ceil(i*j);
                    int e = (int)Math.ceil(j*(i+1))-1;
-                    readFileThread = new ReadFileThread(filelist,s,e);
+                    readFileThread = new ReadFileThreadYL(filelist,s,e);
                     readFileThread.start();
                 }
             }
@@ -84,7 +79,7 @@ public class test {
 
     public static void main(String[] args) {
         try {
-            fileUpLoad("F:\\test");
+            fileUpLoad("E:/JAVA/Workspaces/Idea/test");
         }catch (Exception e){
             e.printStackTrace();
         }

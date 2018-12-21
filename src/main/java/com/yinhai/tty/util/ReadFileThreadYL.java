@@ -15,12 +15,12 @@ import java.util.List;
  * 开启线程
  * Created by yanglei on 2018/12/20.
  */
-public class ReadFileThread extends Thread{
+public class ReadFileThreadYL extends Thread{
     File[] filelist;
     int start;
     int end;
 
-    public ReadFileThread(File[] filelist, int start, int end) {
+    public ReadFileThreadYL(File[] filelist, int start, int end) {
         this.filelist = filelist;
         this.start = start;
         this.end = end;
@@ -57,7 +57,7 @@ public class ReadFileThread extends Thread{
             if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
                 conn = DataBaseConnUtil.getConnection("","","",DataBaseType.SQLServer.getDriverClassName());
             }
-            String result = DataBaseConnUtil.execute(conn,infoBeans);
+           // String result = DataBaseConnUtil.execute(conn,infoBeans);
         }catch (Exception e){
           e.printStackTrace();
         }

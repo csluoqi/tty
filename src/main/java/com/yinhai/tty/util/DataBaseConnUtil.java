@@ -1,11 +1,14 @@
 package com.yinhai.tty.util;
 
-import com.yinhai.tty.entity.InfoBean;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.yinhai.tty.constant.PropertiesConst;
 
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -80,41 +83,46 @@ public class DataBaseConnUtil {
     /**
      * 执行sql
      * @param conn 数据库连接
-     * @param infoBeans
+     * @param infos
      * @return
      */
-    public static String execute(Connection conn, List<InfoBean> infoBeans) throws SQLException {
+    public static String execute(Connection conn, List<Map<Integer,String>> infos) throws SQLException {
         String result = "执行成功！";
         Instant start = Instant.now();
-        Statement state= null;
+        PreparedStatement ps = null;
         conn.setAutoCommit(false);
         try {
-            state = conn.createStatement();
-            for (InfoBean infoBean : infoBeans) {
-                StringBuffer sql = new StringBuffer();
-                sql.append("INSERT INTO USERINFO VALUES ('");
-                sql.append(infoBean.getName()).append("','");
-                sql.append(infoBean.getSex()).append("','");
-                sql.append(infoBean.getIdcard()).append("',to_date('");
-                sql.append(infoBean.getBirthday()).append("','yyyy/MM/dd'),'");
-                sql.append(infoBean.getType()).append("',");
-                sql.append(infoBean.getBalance()).append(",'");
-                sql.append(infoBean.getEmail()).append("')");
-
-                state.addBatch(sql.toString());
+            String sql = PropertiesUtil.getValue("sql",PropertiesConst.DATABASE);
+            ps = conn.prepareStatement(sql);
+            String jsonStr = PropertiesUtil.getValue("cloumn",PropertiesConst.DATABASE);
+            JSONObject json = JSON.parseObject(jsonStr);
+            int cloumn = 7;
+            for (Map<Integer,String> info : infos) {
+                for (int i = 1 ; i <= cloumn; i++){
+                    if("String".equals(json.getString(String.valueOf(i)))){
+                        ps.setString(i,info.get(i));
+                    }
+                    if("Double".equals(json.getString(String.valueOf(i)))){
+                        ps.setDouble(i, Double.parseDouble(info.get(i)));
+                    }
+                    if("Date".equals(json.getString(String.valueOf(i)))){
+                        ps.setDate(i, Date.valueOf(info.get(i)));
+                    }
+                }
+                ps.addBatch();
             }
-            state.setMaxFieldSize(10000);
-            state.executeBatch();
-            state.clearBatch();
+            ps.setMaxFieldSize(10000);
+            ps.executeBatch();
+            ps.clearBatch();
             conn.commit();
             Instant end = Instant.now();
-            System.out.println("Difference in milliseconds : " + Duration.between(start, end).toMillis());
+            System.out.println("WRITE in milliseconds : " + Duration.between(start, end).toMillis());
         } catch (Exception e) {
             e.printStackTrace();
             result = "执行失败！";
         }finally {
-            if(state!=null){
-                state.close();
+            if(ps!=null){
+                ps.close();
             }
             if(conn!=null){
                 conn.close();

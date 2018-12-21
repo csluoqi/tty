@@ -9,9 +9,6 @@ public class TtyApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TtyApplication.class, args);
-
-
 	}
-
 }
 
