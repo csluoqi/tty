@@ -109,8 +109,13 @@ public class FileUpLoadUtil {
             }
             ReadFileThread readFileThread = new ReadFileThread(file);
             List<Map<Integer,String>> infos = readFileThread.call();
+            ReadFileThread readFileThread1 = new ReadFileThread(file);
+            List<Map<Integer,String>> infos1 = readFileThread.call();
+
             WriteDataBaseThread writeDataBaseThread = new WriteDataBaseThread(conn,infos);
             String result = writeDataBaseThread.call();
+            WriteDataBaseThread writeDataBaseThread1 = new WriteDataBaseThread(conn,infos1);
+            String result1 = writeDataBaseThread.call();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -119,7 +124,7 @@ public class FileUpLoadUtil {
     public static void main(String[] args) {
         try {
             Instant start = Instant.now();
-            fileUpLoad("E:/JAVA/Workspaces/Idea/test/1.txt","0");
+            fileUpLoad("E:/JAVA/Workspaces/Idea/test","0");
             Instant end = Instant.now();
             System.out.println("milliseconds : " + Duration.between(start, end).toMillis());
         }catch (Exception e){
