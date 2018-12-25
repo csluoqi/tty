@@ -92,30 +92,18 @@ public class FileUpLoadUtil {
         File file = new File(filePath);
         Connection conn = null;
         try {
-            if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("oraclejdbcurl",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("oracleusername",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("oracleuserpassword",PropertiesConst.APPLICATION),DataBaseType.Oracle.getDriverClassName());
-            }
-            if(DataBaseType.MySql.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("mysqljdbcurl",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("mysqlusername",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("mysqluserpassword",PropertiesConst.APPLICATION),DataBaseType.MySql.getDriverClassName());
-            }
-            if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
-                conn = DataBaseConnUtil.getConnection(PropertiesUtil.getValue("sqlserverjdbcurl",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("sqlserverusername",PropertiesConst.APPLICATION),
-                        PropertiesUtil.getValue("sqlserveruserpassword",PropertiesConst.APPLICATION),DataBaseType.SQLServer.getDriverClassName());
-            }
+            DBPoolConnectionUtil db = DBPoolConnectionUtil.getInstance();
+            conn = db.getConnection();
+
             ReadFileThread readFileThread = new ReadFileThread(file);
             List<Map<Integer,String>> infos = readFileThread.call();
             ReadFileThread readFileThread1 = new ReadFileThread(file);
-            List<Map<Integer,String>> infos1 = readFileThread.call();
+            List<Map<Integer,String>> infos1 = readFileThread1.call();
 
             WriteDataBaseThread writeDataBaseThread = new WriteDataBaseThread(conn,infos);
             String result = writeDataBaseThread.call();
             WriteDataBaseThread writeDataBaseThread1 = new WriteDataBaseThread(conn,infos1);
-            String result1 = writeDataBaseThread.call();
+            String result1 = writeDataBaseThread1.call();
         } catch (Exception e) {
             e.printStackTrace();
         }
