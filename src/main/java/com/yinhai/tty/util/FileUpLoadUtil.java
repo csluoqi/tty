@@ -95,15 +95,7 @@ public class FileUpLoadUtil {
             DBPoolConnectionUtil db = DBPoolConnectionUtil.getInstance();
             conn = db.getConnection();
 
-            ReadFileThread readFileThread = new ReadFileThread(file);
-            List<Map<Integer,String>> infos = readFileThread.call();
-            ReadFileThread readFileThread1 = new ReadFileThread(file);
-            List<Map<Integer,String>> infos1 = readFileThread1.call();
 
-            WriteDataBaseThread writeDataBaseThread = new WriteDataBaseThread(conn,infos);
-            String result = writeDataBaseThread.call();
-            WriteDataBaseThread writeDataBaseThread1 = new WriteDataBaseThread(conn,infos1);
-            String result1 = writeDataBaseThread1.call();
         } catch (Exception e) {
             e.printStackTrace();
         }
