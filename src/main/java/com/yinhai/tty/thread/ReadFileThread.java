@@ -3,10 +3,7 @@ package com.yinhai.tty.thread;
 import com.yinhai.tty.entity.InfoBean;
 import com.yinhai.tty.util.PropertiesUtil;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,7 +30,7 @@ public class ReadFileThread implements Callable {
      * @throws Exception
      */
     @Override
-    public List<Map<Integer,String>> call() throws Exception {
+    public List<Map<Integer,String>> call(){
         List<Map<Integer,String>> infos = new ArrayList<>();
         try{
             Instant start = Instant.now();
@@ -60,20 +57,41 @@ public class ReadFileThread implements Callable {
      * @return
      * @throws Exception
      */
-    public static List<Map<Integer,String>> readFile(File file) throws Exception {
+    public static List<Map<Integer,String>> readFile(File file){
         String encoding = "GBK";
         List<Map<Integer,String>> infos = new ArrayList<>();
-        if (file.isFile() && file.exists()){ //判断文件是否存在
-            InputStreamReader read = new InputStreamReader(new FileInputStream(file), encoding);//考虑到编码格式
-            BufferedReader bufferedReader = new BufferedReader(read);
-            String lineTxt = null;
-            while ((lineTxt = bufferedReader.readLine()) != null) {
-                String[] s=lineTxt.split(",");
-                Map<Integer,String> info = new HashMap<>();
-                for(int i = 1; i <= s.length; i++){
-                    info.put(i,s[i-1]);
+        InputStreamReader read = null;//考虑到编码格式
+        BufferedReader bufferedReader = null;
+        try {
+            if (file.isFile() && file.exists()){ //判断文件是否存在
+                read = new InputStreamReader(new FileInputStream(file), encoding);
+                bufferedReader = new BufferedReader(read);
+                String lineTxt = null;
+                while ((lineTxt = bufferedReader.readLine()) != null) {
+                    String[] s=lineTxt.split(",");
+                    Map<Integer,String> info = new HashMap<>();
+                    for(int i = 1; i <= s.length; i++){
+                        info.put(i,s[i-1]);
+                    }
+                    infos.add(info);
                 }
-                infos.add(info);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(bufferedReader!=null){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return infos;
