@@ -19,9 +19,15 @@ import java.util.concurrent.Callable;
 public class ReadFileThread implements Callable {
 
     File file;
+    private static ThreadPool threadPool;
+    private int start;//开始文件
+    private int end;//结束文件
 
-    public ReadFileThread(File file) {
+    public ReadFileThread(File file,int start,int end) {
         this.file = file;
+        this.start = start;
+        this.end = end;
+        threadPool = new ThreadPool(4);
     }
 
     /**
@@ -36,7 +42,7 @@ public class ReadFileThread implements Callable {
             Instant start = Instant.now();
             if(file.isDirectory()){
                 File[] filelist = file.listFiles();
-                for(int i =0; i < filelist.length; i++){
+                for(int i =this.start; i <= this.end; i++){
                     infos.addAll(readFile(filelist[i]));
                 }
             }
