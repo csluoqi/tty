@@ -13,84 +13,67 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
 /**
  * 开启写入数据库线程(带返回值)
  * Created by yuejun on 2018/12/21.
  */
-public class WriteDataBaseThread implements Callable {
+public class WriteDataBaseThread implements Runnable {
 
     Connection conn;
-    List<Map<Integer,String>> infos;
+    private String threadname;
+    BlockingQueue queue;
+    int start;
+    int end;
 
-    public WriteDataBaseThread(Connection conn, List<Map<Integer,String>> infos) {
+    public WriteDataBaseThread(Connection conn, String threadname,BlockingQueue queue,
+                               int start,int end) {
         this.conn = conn;
-        this.infos = infos;
+        this.threadname = threadname;
+        this.queue = queue;
+        this.start = start;
+        this.end = end;
     }
 
     @Override
-    public String call(){
-        String result = execute(conn,infos);
-        return result;
-    }
-
-    /**
-     * 执行sql
-     * @param conn 数据库连接
-     * @param infos
-     * @return
-     */
-    public static String execute(Connection conn, List<Map<Integer,String>> infos){
-        String result = "执行成功！";
-        Instant start = Instant.now();
-        PreparedStatement ps = null;
+    public void run(){
+        System.out.println(threadname+"----------"+Instant.now());
         try {
-            conn.setAutoCommit(false);
             String sql = PropertiesUtil.getValue("sql",PropertiesConst.DATABASE);
-            ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql);
             String jsonStr = PropertiesUtil.getValue("cloumn",PropertiesConst.DATABASE);
             JSONObject json = JSON.parseObject(jsonStr);
             int cloumn = 7;
-            for (Map<Integer,String> info : infos) {
-                for (int i = 1 ; i <= cloumn; i++){
-                    if("String".equals(json.getString(String.valueOf(i)))){
-                        ps.setString(i,info.get(i));
+            conn.setAutoCommit(false);
+            for(int i = start; i <= end; i++){
+                List<Map<Integer,String>> infs = (List<Map<Integer, String>>) queue.take();
+                Instant wstart = Instant.now();
+                for (Map<Integer,String> info : infs) {
+                    for (int j = 1 ; j <= cloumn; j++){
+                        if("String".equals(json.getString(String.valueOf(j)))){
+                            ps.setString(j,info.get(j));
+                        }
+                        if("Double".equals(json.getString(String.valueOf(j)))){
+                            ps.setDouble(j, Double.parseDouble(info.get(j)));
+                        }
+                        if("Date".equals(json.getString(String.valueOf(j)))){
+                            ps.setString(j,info.get(j));
+                        }
                     }
-                    if("Double".equals(json.getString(String.valueOf(i)))){
-                        ps.setDouble(i, Double.parseDouble(info.get(i)));
-                    }
-                    if("Date".equals(json.getString(String.valueOf(i)))){
-                        ps.setDate(i, Date.valueOf(info.get(i)));
-                    }
+                    ps.addBatch();
                 }
-                ps.addBatch();
+                ps.executeBatch();
+                conn.commit();
+                System.out.println("已写："+infs.size());
+                Instant wend = Instant.now();
+                System.out.println("WRITE "+this.threadname+" in milliseconds : " + Duration.between(wstart, wend).toMillis());
             }
-            ps.setMaxFieldSize(10000);
-            ps.executeBatch();
-            ps.clearBatch();
-            conn.commit();
-            Instant end = Instant.now();
-            System.out.println("WRITE in milliseconds : " + Duration.between(start, end).toMillis());
+            Thread.sleep(100);
         } catch (Exception e) {
             e.printStackTrace();
-            result = "执行失败！";
-        }finally {
-            if(ps!=null){
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(conn!=null){
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-        return result;
     }
 }
