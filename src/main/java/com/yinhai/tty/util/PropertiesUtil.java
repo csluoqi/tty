@@ -1,5 +1,7 @@
 package com.yinhai.tty.util;
 
+import com.yinhai.tty.constant.PropertiesConst;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +22,7 @@ public class PropertiesUtil {
     }
 
     public static void main(String[] args){
-        //System.out.println(getValue("oraclejdbcurl"));
+        String S = getValue("cloumn",PropertiesConst.DATABASE);
+        System.out.println(S);
     }
 }

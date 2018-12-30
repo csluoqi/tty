@@ -48,7 +48,7 @@ public class ReadFileThreadYL extends Thread{
     public static void insert(String dataBaseType, List<InfoBean> infoBeans){
         Connection conn = null;
         try {
-            if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
+            /*if(DataBaseType.Oracle.getTypeId().equals(dataBaseType)){
                 conn = DataBaseConnUtil.getConnection("jdbc:oracle:thin:@192.168.20.180:1521/orcl","ta3","ta3",DataBaseType.Oracle.getDriverClassName());
             }
             if(DataBaseType.MySql.getTypeId().equals(dataBaseType)){
@@ -56,7 +56,7 @@ public class ReadFileThreadYL extends Thread{
             }
             if(DataBaseType.SQLServer.getTypeId().equals(dataBaseType)){
                 conn = DataBaseConnUtil.getConnection("","","",DataBaseType.SQLServer.getDriverClassName());
-            }
+            }*/
            // String result = DataBaseConnUtil.execute(conn,infoBeans);
         }catch (Exception e){
           e.printStackTrace();

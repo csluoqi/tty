@@ -1,18 +1,16 @@
 package com.yinhai.tty.thread;
 
-import com.yinhai.tty.entity.InfoBean;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.yinhai.tty.constant.PropertiesConst;
 import com.yinhai.tty.util.PropertiesUtil;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
 /**
@@ -22,9 +20,19 @@ import java.util.concurrent.Callable;
 public class ReadFileThread implements Callable {
 
     File file;
+    private int start;//开始文件
+    private int end;//结束文件
+    private String threadname;
+    Connection conn;
+    BlockingQueue queue;
 
-    public ReadFileThread(File file) {
+    public ReadFileThread(File file,int start,int end,String threadname,Connection conn,BlockingQueue queue) {
         this.file = file;
+        this.start = start;
+        this.end = end;
+        this.threadname = threadname;
+        this.conn = conn;
+        this.queue = queue;
     }
 
     /**
@@ -33,25 +41,30 @@ public class ReadFileThread implements Callable {
      * @throws Exception
      */
     @Override
-    public List<Map<Integer,String>> call() throws Exception {
+    public BlockingQueue call(){
         List<Map<Integer,String>> infos = new ArrayList<>();
         try{
-            Instant start = Instant.now();
+            Instant rstart = Instant.now();
+            //读
             if(file.isDirectory()){
                 File[] filelist = file.listFiles();
-                for(int i =0; i < filelist.length; i++){
-                    infos.addAll(readFile(filelist[i]));
+                for(int i =this.start; i <= this.end; i++){
+                    infos.addAll(readFile(filelist[i-1],threadname));
                 }
             }
             if(!file.isDirectory()){
-                infos = readFile(file);
+                infos = readFile(file,threadname);
             }
-            Instant end = Instant.now();
-            System.out.println("READ in milliseconds : " + Duration.between(start, end).toMillis());
+            //queue.offer(infos);
+            System.out.println("已读："+infos.size());
+            Instant rend = Instant.now();
+            System.out.println("READ "+this.threadname+" in milliseconds : " + Duration.between(rstart, rend).toMillis());
+            queue.put(infos);
+            Thread.sleep(100);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return infos;
+        return queue;
     }
 
     /**
@@ -60,20 +73,42 @@ public class ReadFileThread implements Callable {
      * @return
      * @throws Exception
      */
-    public static List<Map<Integer,String>> readFile(File file) throws Exception {
+    public static List<Map<Integer,String>> readFile(File file,String threadname){
+        System.out.println(threadname+"----------"+Instant.now());
         String encoding = "GBK";
         List<Map<Integer,String>> infos = new ArrayList<>();
-        if (file.isFile() && file.exists()){ //判断文件是否存在
-            InputStreamReader read = new InputStreamReader(new FileInputStream(file), encoding);//考虑到编码格式
-            BufferedReader bufferedReader = new BufferedReader(read);
-            String lineTxt = null;
-            while ((lineTxt = bufferedReader.readLine()) != null) {
-                String[] s=lineTxt.split(",");
-                Map<Integer,String> info = new HashMap<>();
-                for(int i = 1; i <= s.length; i++){
-                    info.put(i,s[i-1]);
+        InputStreamReader read = null;//考虑到编码格式
+        BufferedReader bufferedReader = null;
+        try {
+            if (file.isFile() && file.exists()){ //判断文件是否存在
+                read = new InputStreamReader(new FileInputStream(file), encoding);
+                bufferedReader = new BufferedReader(read);
+                String lineTxt = null;
+                while ((lineTxt = bufferedReader.readLine()) != null) {
+                    String[] s=lineTxt.split(",");
+                    Map<Integer,String> info = new HashMap<>();
+                    for(int i = 1; i <= s.length; i++){
+                        info.put(i,s[i-1]);
+                    }
+                    infos.add(info);
                 }
-                infos.add(info);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(bufferedReader!=null){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return infos;
