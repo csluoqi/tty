@@ -24,7 +24,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
-      <scope>test</scope>
+
     </dependency>
     <dependency>
       <groupId>com.alibaba</groupId>
@@ -36,6 +36,12 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.yinhai</groupId>
+      <artifactId>ojdbc</artifactId>
+      <version>6.0</version>
     </dependency>
 
     <dependency>
