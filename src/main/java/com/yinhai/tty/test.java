@@ -54,7 +54,7 @@ public class test {
     }
 
     public static List<InfoBean> readFile(File file) throws Exception {
-        String encoding = "GBK";
+        String encoding = "UTF-8";
         List<InfoBean> infoBeans = new ArrayList<InfoBean>();
         InfoBean infoBean=new InfoBean();
         if (file.isFile() && file.exists()){ //判断文件是否存在

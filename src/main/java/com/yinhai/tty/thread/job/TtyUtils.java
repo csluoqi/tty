@@ -80,7 +80,7 @@ public class TtyUtils {
         for (int i = 0; i < splitNum; i++) {
             index = i * batchSize;
             end = batchSize * (i + 1);
-            System.out.println(i);
+            //System.out.println(i);
             if (end > list.size()) {
                 end = list.size();
             }

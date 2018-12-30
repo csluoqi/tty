@@ -19,7 +19,7 @@ public class YJtest {
     public static void main(String[] args){
         Instant start = Instant.now();
         BlockingQueue queue = new ArrayBlockingQueue(1024);
-        File file = new File("E:/JAVA/Workspaces/Idea/test1");
+        File file = new File("D:\\test\\test");
         ExecutorService threadPool = Executors.newFixedThreadPool(4);
         Connection conn = null;
         try {

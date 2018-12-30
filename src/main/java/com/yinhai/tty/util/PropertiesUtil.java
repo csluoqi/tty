@@ -23,6 +23,6 @@ public class PropertiesUtil {
 
     public static void main(String[] args){
         String S = getValue("cloumn",PropertiesConst.DATABASE);
-        System.out.println(S);
+        //System.out.println(S);
     }
 }

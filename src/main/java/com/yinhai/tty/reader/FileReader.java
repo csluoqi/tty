@@ -25,7 +25,7 @@ public class FileReader {
             try {
                 List<String> lines = Files.readAllLines(path,Charset.forName("UTF-8"));
                 lines.forEach(str -> {
-                    System.out.println(str);
+                    System.out.println("FileReader"+str);
                 }  );
             } catch (IOException e) {
                 e.printStackTrace();
