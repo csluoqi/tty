@@ -12,6 +12,8 @@ public class YJtest {
         PreparedStatement ps = null;
         try {
             conn = dbp.getConnection();    //从数据库连接池中获取数据库连接
+            PreparedStatement preparedStatement = conn.prepareStatement("select * from user_tables");
+            ResultSet resultSet = preparedStatement.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
